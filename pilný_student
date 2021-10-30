@@ -1,0 +1,216 @@
+
+def _preparing_the_arrays(num_of_days):
+    b = []
+    for i in range(int(num_of_days) + 1):
+        b.append([0])
+    return b
+
+
+def putting_in_numbers(num_of_days, values_in, num_homework):
+    a = _preparing_the_arrays(num_of_days)
+    for i in range(0, num_homework*2, 2):
+        a[values_in[i+1]].append(values_in[i])
+    return a
+
+
+def how_they_go_after_each_other(values_in, num_homework):
+    a = []
+    for i in range(0, num_homework*2, 2):
+        a.append(values_in[i])
+    return a
+
+
+def sort_my_array(array):
+    a = []
+    for i in array:
+        a.append(sorted(i, reverse=True))
+    return a
+
+
+def check_if_bigger_in_list(c, list, how_many_times):
+    a = []
+    for i in range(how_many_times):
+        if c < list[i]:
+            a.append(True)
+        else:
+            a.append(False)
+    return a
+
+
+def implementation_on_one_index(list_of_lists, where_wanna_start, max_len):
+    a = []
+    for i in range(where_wanna_start, len(list_of_lists)):
+        if len(list_of_lists[i]) > i - where_wanna_start:
+            if i - where_wanna_start == 0:
+                if list_of_lists[where_wanna_start][0] < list_of_lists[i][i - where_wanna_start]:
+                    a.append((list_of_lists[i], i))
+            if i - where_wanna_start == 1:
+                if list_of_lists[where_wanna_start][0] < list_of_lists[i][i-where_wanna_start ]:
+                    a.append((list_of_lists[i], i))
+            if i - where_wanna_start > 1 :
+                if list_of_lists[where_wanna_start][0] < list_of_lists[i][i-where_wanna_start ]:
+                    a.append((list_of_lists[i], i))
+        if list_of_lists[where_wanna_start][0] == 0:
+            for j in range(where_wanna_start , len(list_of_lists)):
+                if j > max_len :
+                    return a
+                if list_of_lists[j][0] != 0:
+                    if j - where_wanna_start == 0:
+                        if list_of_lists[where_wanna_start][0] < list_of_lists[j][j - where_wanna_start]:
+                            a.append((list_of_lists[j], j))
+                    if j - where_wanna_start == 1:
+                        if list_of_lists[where_wanna_start][0] < list_of_lists[j][j - where_wanna_start - 1]:
+                            a.append((list_of_lists[j], j))
+                    if j - where_wanna_start > 1:
+                        if len(list_of_lists[j]) >= j - where_wanna_start:
+                            if list_of_lists[where_wanna_start][0] <= list_of_lists[j][j - where_wanna_start - 1]:
+                                a.append((list_of_lists[j], j))
+
+        if i > max_len:
+            return a
+    return a
+
+
+def get_the_longest_len(list_of_lists):
+    a = 0
+    for i in range(len(list_of_lists)):
+        if len(list_of_lists[i]) > a:
+            a = len(list_of_lists[i])
+    return a
+
+
+def determening_which_is_best(list_of_tuples):
+    b = list_of_tuples[0]
+    for i in range(len(list_of_tuples)):
+        for j in range(i + 1, len(list_of_tuples)):
+            if all(check_if_bigger_in_list(list_of_tuples[i][0][0], list_of_tuples[j][0], list_of_tuples[j][1] - list_of_tuples[i][1] + 1)):
+                for k in range(1, len(list_of_tuples[i])):
+                    if all(check_if_bigger_in_list(list_of_tuples[i][0][k], list_of_tuples[j][0],
+                                                   list_of_tuples[j][1] - list_of_tuples[i][1] + 1 - k)):
+                        b = list_of_tuples[j]
+
+    return b
+
+
+def definitive_implementation(list_of_lists):
+    t = get_the_longest_len(list_of_lists)
+    storage = dict()
+    calculation = 0
+    var = list_of_lists
+    for i in range(len(list_of_lists)):
+        a = implementation_on_one_index(list_of_lists, i, t)
+        if a:
+            if len(a) == 1:
+                calculation += a[0][0][0]
+                if a[0][1] in storage:
+                    storage[i].append(a[0][0][0])
+                else:
+                    storage[i] = a[0][0][0]
+                var = list_of_lists[a[0][1]].remove(a[0][0][0])
+            if len(a) > 1:
+                c = determening_which_is_best(a)
+                calculation += c[0][0]
+                """
+                if c[0][1] in storage:
+                    storage[i].append(c[0][0])
+                else:"""
+                storage[i] = c[0][0]
+                var = list_of_lists[c[1]].remove(c[0][0])
+        else:
+            calculation += list_of_lists[i][0]
+            storage[i] = list_of_lists[i][0]
+            var = list_of_lists[i].remove(list_of_lists[i][0])
+    return calculation, storage
+
+
+def reverse_dict(list_of_lists):
+    new_dict = dict()
+    for i in range(len(list_of_lists[1])):
+        a = int(list_of_lists[1][i])
+        if a not in new_dict:
+            new_dict[a] = [i]
+        else:
+            new_dict[a].append(i)
+    return list_of_lists[0], new_dict
+
+
+def days_when_it_should_be_done(list_of_lists, how_it_goes):
+    a = reverse_dict(list_of_lists)
+    storage = []
+    for i in range(0, len(how_it_goes), 2):
+        if how_it_goes[i] not in a[1].keys():
+            storage.append(-1)
+        else:
+            if len(a[1][how_it_goes[i]]) == 0:
+                storage.append(-1)
+            else:
+                storage.append(a[1][how_it_goes[i]][0])
+                var = a[1][how_it_goes[i]].remove(a[1][how_it_goes[i]][0])
+    return list_of_lists[0], storage
+
+
+def max_day(list):
+    a = []
+    for i in range(1, len(list), 2):
+        a.append(list[i])
+    return max(a)
+
+
+def split_string(string):
+    lis = list(string.split(","))
+    return lis
+
+
+def make_them_int(list):
+    a = []
+    for i in list:
+        if i == "":
+            continue
+        else:
+            a.append(int(i))
+    return a
+
+
+
+
+file = open("test.txt")
+line = file.read().replace(" ", ",")
+file.close()
+
+"""
+
+file = open("test.txt")
+lines = file.read().splitlines()
+file.close()
+file = open("test.txt", "w")
+for line in lines:
+    file.write(line + ",")
+file.close()
+"""
+r = split_string(line)
+p = make_them_int(r)
+
+
+q = max_day(p)
+
+h = sort_my_array(putting_in_numbers(q, p, 65))                                            #num_of_days, values_in, num_homework
+t = definitive_implementation(h)
+s = days_when_it_should_be_done(t, p)
+
+
+def creat_a_file(s, name):
+    file = open(name, "w")
+    for i in range(len(s[1]) + 1):
+        if i == 0:
+            file.write(str(s[0]) + "\n")
+            pass
+        else:
+            file.write(str(s[1][i - 1])+ "\n")
+
+creat_a_file(s, "test_1.txt")
+
+
+
+
+
+
