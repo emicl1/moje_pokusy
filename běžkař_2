@@ -1,0 +1,160 @@
+from zkouška_modulu import Graph
+from itertools import permutations
+
+c = [0, 1, 2, 3,
+     1, 2, 5, 4,
+     2, 0, 50, 50]
+
+
+def split_string(string):
+    lis = list(string.split(","))
+    return lis
+
+
+def make_them_int(list):
+    a = []
+    for i in list:
+        if i == "":
+            continue
+        else:
+            a.append(int(i))
+    return a
+
+
+def make_dict_of_roads(list_of_data):
+    dict = {}
+    for i in range(0, len(list_of_data), 4):
+        if list_of_data[i] > list_of_data[i + 1]:
+            if list_of_data[i + 1] in dict:
+                dict[list_of_data[i + 1]].append((list_of_data[i], list_of_data[i + 2], list_of_data[i + 3]))
+            else:
+                dict[list_of_data[i + 1]] = [(list_of_data[i], list_of_data[i + 2], list_of_data[i + 3])]
+        else:
+            if list_of_data[i] in dict:
+                dict[list_of_data[i]].append((list_of_data[i + 1], list_of_data[i + 2], list_of_data[i + 3]))
+            else:
+                dict[list_of_data[i]] = [(list_of_data[i + 1], list_of_data[i + 2], list_of_data[i + 3])]
+    return dict
+
+
+def binary_values(num):
+    a = []
+    for i in range(num):
+        a.append(1)
+        a.append(0)
+    return a
+
+
+def make_a_permutation_list_of_binary_values(how_many_roads):
+    t = binary_values(how_many_roads)
+    a = []
+    perm = permutations(t, how_many_roads)
+    for i in list(perm):
+        a.append(i)
+    return list(set(a))
+
+
+def create_dicts(list_of_tuples_of_binary, transition_cost):
+    d = []
+    for i in range(len(list_of_tuples_of_binary)):
+        t = dict()
+        value_of_transition = 0
+        for j in range(len(list_of_tuples_of_binary[i])):
+            if list_of_tuples_of_binary[i][j] == 1:
+                t[j] = True
+                if j == 0:
+                    continue
+                if j == len(list_of_tuples_of_binary[i]) - 1:
+                    value_of_transition += transition_cost
+                if t[j - 1] is False:
+                    value_of_transition += transition_cost
+            else:
+                t[j] = False
+                if j == 0:
+                    value_of_transition += transition_cost
+                    continue
+                if t[j - 1] is True:
+                    value_of_transition += transition_cost
+        d.append((t, value_of_transition))
+    return d
+
+
+def implementation_on_one(dict_of_values, dict_of_binary, number_of_vertex, start_vertex, transition_cost):
+    g = Graph(number_of_vertex)
+    a = 0
+    for i in range(number_of_vertex):
+        if i in dict_of_values.keys():
+            for j in range(len(dict_of_values[i])):
+                if dict_of_binary[0][a] is True:
+                    if i == start_vertex:
+                        g.add_edge(i, dict_of_values[i][j][0], dict_of_values[i][j][1])
+                        g.value = dict_of_binary[1]
+                        a += 1
+                    else:
+                        if dict_of_binary[0][dict_of_values[i][j][0]] is True:
+                            g.add_edge(i, dict_of_values[i][j][0], dict_of_values[i][j][1])
+                            g.value = dict_of_binary[1]
+                            a += 1
+                        else:
+                            g.add_edge(i, dict_of_values[i][j][0], dict_of_values[i][j][1] + transition_cost)
+                            g.value = dict_of_binary[1]
+                            a += 1
+                else:
+                    if i == start_vertex:
+                        g.add_edge(i, dict_of_values[i][j][0], dict_of_values[i][j][1] + transition_cost)
+                        g.value = dict_of_binary[1]
+                        a += 1
+                    else:
+                        if dict_of_binary[0][dict_of_values[i][j][0]] is True:
+                            g.add_edge(i, dict_of_values[i][j][0], dict_of_values[i][j][1] + transition_cost)
+                            g.value = dict_of_binary[1]
+                            a += 1
+                        else:
+                            g.add_edge(i, dict_of_values[i][j][0], dict_of_values[i][j][1])
+                            g.value = dict_of_binary[1]
+                            a += 1
+        else:
+            continue
+
+    return g
+
+
+def implementation_end(dict_of_values, dict_of_binary, number_of_vertex, start_vertex, transition_cost, end_vertex):
+    storage = []
+    for i in range(len(dict_of_binary)):
+        a = implementation_on_one(dict_of_values, dict_of_binary[i], number_of_vertex, start_vertex, transition_cost)
+        e = a.dijkstra(start_vertex)
+        storage.append(e[end_vertex])
+    return min(storage)
+
+file = open("test.txt")
+line = file.read().replace(" ", ",")
+file.close()
+"""
+file = open("test.txt")
+lines = file.read().splitlines()
+file.close()
+file = open("test.txt", "w")
+for line in lines:
+    file.write(line + ",")
+file.close()
+
+
+
+
+"""
+number_o_vertex = 7
+number_of_roads = 15
+start_vertex = 3
+end_vertex = 5
+transition_cost = 15
+
+
+b = make_dict_of_roads(line)
+d = make_a_permutation_list_of_binary_values(number_of_roads)
+t = create_dicts(d, transition_cost)
+u = implementation_end(b, t, number_o_vertex, start_vertex, transition_cost, end_vertex)
+
+
+file = open("test_01.txt", "w")
+file.write(str(u))
